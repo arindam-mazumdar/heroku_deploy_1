@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>First Flask App</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<script>
+function myFunction() {
+var num1= $num1;
+  $.ajax({
+              url: "/join",
+              type: "POST",
+              data: {num1:num1}
+          }).done(function(response) {
+            var html= "<br><br><br><p> <b> The given number is prime or not: : <b><p>";
+            response =response.result;
+                 $.each(response,function(key,val){
+                 console.log(val);
+                    html+="<p>"+val+"<p>"
+                });
+                html +="<br>";
+                $(".show-data").append(html);
+            });
+};
+  </script>
+<body>
+    <p>
+        Taking input from web<br><br>
+            Provide the number<input type="number" id="num1" name="num1"><br><br>
+            <button id="clicked" onclick="myFunction()">Submit</button>
+        </p>
+    <div class="show-data" >
+    </div>
+</body>
+</html>
