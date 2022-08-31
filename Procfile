@@ -1,1 +1,1 @@
-web: gunicorn dropdown:aap
+web: gunicorn dropdown:app
