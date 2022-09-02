@@ -3,10 +3,13 @@ import pandas as pd
 import numpy as np
 import pickle
 from flask import Flask, flash, redirect, render_template, request, url_for
+#from matplotlib import pyplot as plt
+import os
 
 from sklearn.naive_bayes import MultinomialNB
 
 app = Flask(__name__,template_folder='template')
+
 
 #path = '/home/arindam/codes/BRFS/LLCP2020ASC/'
 #df = pd.read_csv(path+'wrangled_data.csv')
@@ -33,6 +36,20 @@ diab_list = ['No', 'Yes']
 #### Import fitted model 
 
 clf = pickle.load(open('NB_fitted', 'rb'))
+
+
+    
+fac_dict = pickle.load(open('factors', 'rb'))
+
+fact_best=dict()
+fact_best['smoke']= 'Never smoked'
+fact_best['todo'] = 'Had physical activity or exercise in last 30 days'
+fact_best['hcov'] = 'Had health care coverage always'
+fact_best['sleep'] = ['8','9','10','11']
+fact_best['drink'] = 'No'
+fact_best['diab'] = 'No'    
+
+######################################################################
 
 
 def calculate_risk(age,sex,smoke, todo, hcov,sleep, drink,diab):
@@ -73,16 +90,34 @@ def calculate_risk(age,sex,smoke, todo, hcov,sleep, drink,diab):
     return risk
     
     
-fac_dict = pickle.load(open('factors', 'rb'))    
+def calculate_healthy(age,sex):
+    return calculate_risk(age,sex,fact_best['smoke'], fact_best['todo'], fact_best['hcov'],'8', fact_best['drink'],fact_best['diab']) 
+    
+    
+#def get_pie(age,sex,smoke, todo, hcov,sleep, drink,diab):
+#    bad_dict = dict()
+#    for item in ['smoke', 'todo', 'hcov','sleep', 'drink','diab']:
+#        if eval(item) in fact_best[item]:
+#            pass
+#        else:
+#            bad_dict[item] = eval(item)
+#    if len(bad_dict) > 0 :
+#        prob_dict = {}
+#        for keys, values in bad_dict.items():
+#            prob_dict[keys] = fac_dict[keys][values]
+#        
+#        if os.path.exists("static/pie.png"):
+#            os.remove("static/pie.png")
+
+#        plt.pie(prob_dict.values(), labels= prob_dict.keys(), autopct='%1.1f%%', shadow=True)
+#        plt.savefig('static/pie.png', dpi=200)
+#        plt.close()
+#        return "../static/pie.png"
+#    else:
+#        return "../static/thumbs_up.jpg" 
+            
     
 def calculate_factor(age,sex,smoke, todo, hcov,sleep, drink,diab):
-    fact_best=dict()
-    fact_best['smoke']= 'Never smoked'
-    fact_best['todo'] = 'Had physical activity or exercise in last 30 days'
-    fact_best['hcov'] = 'Had health care coverage always'
-    fact_best['sleep'] = ['8','9','10','11']
-    fact_best['drink'] = 'No'
-    fact_best['diab'] = 'No'
     
     bad_dict = dict()
     for item in ['smoke', 'todo', 'hcov','sleep', 'drink','diab']:
@@ -134,7 +169,10 @@ def test():
     diab = request.form.get('comp_select7')
     drink = request.form.get('comp_select8')
     #risk_out = '{:.2f}'.format(calculate_risk(age,sex,smoke))
-    return render_template('output.html', risk_out = '{:.2f}'.format(calculate_risk(age,sex,smoke,todo, hcov,sleep, drink,diab)), case_out = calculate_factor(age,sex,smoke,todo, hcov,sleep, drink,diab) )
+    return render_template('output.html', risk_out = '{:.2f}'.format(calculate_risk(age,sex,smoke,todo, hcov,sleep, drink,diab)),
+    ratio_out =  '{:.2f}'.format(calculate_risk(age,sex,smoke,todo, hcov,sleep, drink,diab)/calculate_healthy(age,sex)),
+#    pie_out = get_pie(age,sex,smoke,todo, hcov,sleep, drink,diab),
+    case_out = calculate_factor(age,sex,smoke,todo, hcov,sleep, drink,diab) )
 
 if __name__=='__main__':
     app.run(debug=True)
