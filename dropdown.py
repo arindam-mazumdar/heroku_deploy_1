@@ -76,14 +76,32 @@ def calculate_risk(age,sex,smoke, todo, hcov,sleep, drink,diab):
 fac_dict = pickle.load(open('factors', 'rb'))    
     
 def calculate_factor(age,sex,smoke, todo, hcov,sleep, drink,diab):
- 
-    prob_list = [fac_dict['smoke'][smoke], fac_dict['todo'][todo], fac_dict['hcov'][hcov], fac_dict['sleep'][sleep], fac_dict['drink'][drink],
-    fac_dict['diab'][diab] ]
-    case_list = ['Smoking', 'Lack of Physical Ativity', 'Lack of Health Coverage', 'Less Sleeping', 'Drinking','History of Diabetis']
-    for i in range(len(prob_list)):    
-        if max(prob_list) == prob_list[i]:
-            return case_list[i]
+    fact_best=dict()
+    fact_best['smoke']= 'Never smoked'
+    fact_best['todo'] = 'Had physical activity or exercise in last 30 days'
+    fact_best['hcov'] = 'Had health care coverage always'
+    fact_best['sleep'] = ['8','9','10','11']
+    fact_best['drink'] = 'No'
+    fact_best['diab'] = 'No'
     
+    bad_dict = dict()
+    for item in ['smoke', 'todo', 'hcov','sleep', 'drink','diab']:
+        if eval(item) in fact_best[item]:
+            pass
+        else:
+            bad_dict[item] = eval(item)
+    if len(bad_dict) > 0 :
+        prob_dict = {}
+        for keys, values in bad_dict.items():
+            prob_dict[keys] = fac_dict[keys][values] 
+            
+        sort_dict =  sorted(prob_dict, key = lambda x: x[1], reverse= True )      
+    #    prob_list = [fac_dict['smoke'][smoke], fac_dict['todo'][todo], fac_dict['hcov'][hcov], fac_dict['sleep'][sleep], fac_dict['drink'][drink],
+    #    fac_dict['diab'][diab] ]
+        case_dict = {'smoke':'Smoking', 'todo':'Lack of Physical Ativity', 'hcov': 'Lack of Health Coverage', 'sleep': 'Less Sleeping', 'drink': 'Drinking', 'diab':'History of Diabetis'}
+        return 'The main cause of this is: '+case_dict[sort_dict[0]]
+    else:
+        return "Don't worry! You are doing good for your age and gender"
 
 @app.route('/')
 def index():
