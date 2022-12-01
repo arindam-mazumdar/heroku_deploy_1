@@ -3,9 +3,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from flask import Flask, flash, redirect, render_template, request, url_for
-from flask_caching import Cache
 from matplotlib import pyplot as plt
-from werkzeug.utils import cached_property
 
 import os
 
@@ -13,7 +11,7 @@ from sklearn.naive_bayes import MultinomialNB
 
 app = Flask(__name__,template_folder='template')
 
-cache = Cache(app,config={'CACHE_TYPE': 'null'})
+
 
 #app.config["CACHE_TYPE"] = "null"
 
@@ -148,7 +146,6 @@ def calculate_factor(age,sex,smoke, todo, hcov,sleep, drink,diab):
 
 
 
-cache.init_app(app)
 
 
 @app.after_request
