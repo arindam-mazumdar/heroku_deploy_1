@@ -3,12 +3,19 @@ import pandas as pd
 import numpy as np
 import pickle
 from flask import Flask, flash, redirect, render_template, request, url_for
-#from matplotlib import pyplot as plt
+from flask_caching import Cache
+from matplotlib import pyplot as plt
+from werkzeug.utils import cached_property
+
 import os
 
 from sklearn.naive_bayes import MultinomialNB
 
 app = Flask(__name__,template_folder='template')
+
+cache = Cache(app,config={'CACHE_TYPE': 'null'})
+
+#app.config["CACHE_TYPE"] = "null"
 
 
 #path = '/home/arindam/codes/BRFS/LLCP2020ASC/'
@@ -94,27 +101,27 @@ def calculate_healthy(age,sex):
     return calculate_risk(age,sex,fact_best['smoke'], fact_best['todo'], fact_best['hcov'],'8', fact_best['drink'],fact_best['diab']) 
     
     
-#def get_pie(age,sex,smoke, todo, hcov,sleep, drink,diab):
-#    bad_dict = dict()
-#    for item in ['smoke', 'todo', 'hcov','sleep', 'drink','diab']:
-#        if eval(item) in fact_best[item]:
-#            pass
-#        else:
-#            bad_dict[item] = eval(item)
-#    if len(bad_dict) > 0 :
-#        prob_dict = {}
-#        for keys, values in bad_dict.items():
-#            prob_dict[keys] = fac_dict[keys][values]
-#        
-#        if os.path.exists("static/pie.png"):
-#            os.remove("static/pie.png")
+def get_pie(age,sex,smoke, todo, hcov,sleep, drink,diab):
+    bad_dict = dict()
+    for item in ['smoke', 'todo', 'hcov','sleep', 'drink','diab']:
+        if eval(item) in fact_best[item]:
+            pass
+        else:
+            bad_dict[item] = eval(item)
+    if len(bad_dict) > 0 :
+        prob_dict = {}
+        for keys, values in bad_dict.items():
+            prob_dict[keys] = fac_dict[keys][values]
+        
+        if os.path.exists("static/pie.png"):
+            os.remove("static/pie.png")
 
-#        plt.pie(prob_dict.values(), labels= prob_dict.keys(), autopct='%1.1f%%', shadow=True)
-#        plt.savefig('static/pie.png', dpi=200)
-#        plt.close()
-#        return "../static/pie.png"
-#    else:
-#        return "../static/thumbs_up.jpg" 
+        plt.pie(prob_dict.values(), labels= prob_dict.keys(), autopct='%1.1f%%', shadow=True)
+        plt.savefig('static/pie.png', dpi=200)
+        plt.close()
+        return "../static/pie.png?dummy=8484744"
+    else:
+        return "../static/thumbs_up.jpg" 
             
     
 def calculate_factor(age,sex,smoke, todo, hcov,sleep, drink,diab):
@@ -130,13 +137,31 @@ def calculate_factor(age,sex,smoke, todo, hcov,sleep, drink,diab):
         for keys, values in bad_dict.items():
             prob_dict[keys] = fac_dict[keys][values] 
             
-        sort_dict =  sorted(prob_dict, key = lambda x: x[1], reverse= True )      
+        sort_dict =  sorted(prob_dict.items(), key = lambda x: x[1], reverse= True )      
     #    prob_list = [fac_dict['smoke'][smoke], fac_dict['todo'][todo], fac_dict['hcov'][hcov], fac_dict['sleep'][sleep], fac_dict['drink'][drink],
     #    fac_dict['diab'][diab] ]
         case_dict = {'smoke':'Smoking', 'todo':'Lack of Physical Ativity', 'hcov': 'Lack of Health Coverage', 'sleep': 'Less Sleeping', 'drink': 'Drinking', 'diab':'History of Diabetis'}
-        return 'The main cause of this is: '+case_dict[sort_dict[0]]
+        return 'The main cause of this is: '+case_dict[sort_dict[0][0]]
+
     else:
         return "Don't worry! You are doing good for your age and gender"
+
+
+
+cache.init_app(app)
+
+
+@app.after_request
+def add_header(r):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for 10 minutes.
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
 
 @app.route('/')
 def index():
@@ -151,12 +176,6 @@ def index():
         data7 = [{'name': 'No'},{'name': 'Yes'}],
         data8 = [{'name': 'No'},{'name': 'Yes'}])
    
-#@app.route("/test" , methods=['GET', 'POST'])
-#def test():
-#    age = request.form.get('comp_select1')
-#    sex = request.form.get('comp_select2')
-#    smoke = request.form.get('comp_select3')
-#    return '<br><br><br><br><br><br><br><br><center><h1> Your risk of developing heart disease is {:.2f}%</h1></center>'.format(calculate_risk(age,sex,smoke)) 
 
 @app.route("/test" , methods=['GET', 'POST'])
 def test():
@@ -171,7 +190,7 @@ def test():
     #risk_out = '{:.2f}'.format(calculate_risk(age,sex,smoke))
     return render_template('output.html', risk_out = '{:.2f}'.format(calculate_risk(age,sex,smoke,todo, hcov,sleep, drink,diab)),
     ratio_out =  '{:.2f}'.format(calculate_risk(age,sex,smoke,todo, hcov,sleep, drink,diab)/calculate_healthy(age,sex)),
-#    pie_out = get_pie(age,sex,smoke,todo, hcov,sleep, drink,diab),
+    pie_out = get_pie(age,sex,smoke,todo, hcov,sleep, drink,diab),
     case_out = calculate_factor(age,sex,smoke,todo, hcov,sleep, drink,diab) )
 
 if __name__=='__main__':
