@@ -9,22 +9,26 @@
     <center><h1 style="color:Brown"> Prediction of Heart Disease Risk </h1></center>
 
 
+<center>
 <form class="form-inline" method="POST" action="{{ url_for('test') }}">
   <div class="form-group">
-    <div class="input-group">
-        
-        <br><br><br><br><br><br><br><br>
-        <center><h1> The possibility that you have already developed a heart disease is <br><br>
-        {{ risk_out }}%<br>
+  <centering>
+    <div class="input-group", style="width:60%" >
+        <br><br> 
+        <br>
+        <center><h2> The possibility that you have already developed a heart disease is <br><br>
+        {{ risk_out }}% <br>
         which is <br>
         {{ratio_out}} 
         <br>times higher than a healthy person of your age and gender.
-        </h1></center>
-    <br><br><br><br>
-    
-    <center><h1>{{ case_out }}</h1></center>
+        </h2></center>
+    <center>
+    <img src="{{pie_out}}", style="width:50%" >
+    <h1>{{ case_out }}</h1></center>
+</center>
                  
     </div>
+    </centering>
     <br><br><br><br><br><br><br><br>
 
   </div>
